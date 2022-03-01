@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'rest_framework',
     'reviews.apps.ReviewsConfig',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
