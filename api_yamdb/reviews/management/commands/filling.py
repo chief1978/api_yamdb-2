@@ -35,6 +35,10 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
+            '-a', '--app',
+            required=True,
+            help='takes the lable of the app')
+        parser.add_argument(
             '-m', '--model',
             required=True,
             help='takes the name of the model class')
@@ -45,7 +49,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            model = apps.get_model('posts', options['model'])
+            model = apps.get_model(options['app'], options['model'])
             fill_post(model, options['file'])
         except Exception as e:
             raise CommandError(f'{e}')
