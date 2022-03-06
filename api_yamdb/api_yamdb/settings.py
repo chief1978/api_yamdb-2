@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',
     'rest_framework',
-    'titles.apps.ReviewsConfig',
+    'titles.apps.TitlesConfig',
     'reviews.apps.ReviewsConfig',
     'api.apps.ApiConfig',
 ]
