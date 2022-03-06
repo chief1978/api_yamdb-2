@@ -107,6 +107,9 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
+# Custom User
+AUTH_USER_MODEL = 'users.User'
+
 # Django rest framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
