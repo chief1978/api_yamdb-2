@@ -14,7 +14,7 @@ def csv_parser(csv_filename):
                 yield row
 
 
-def fill_post(model, file):
+def insert_data(model, file):
     file_path = os.path.join(settings.STATICFILES_DIRS[0], 'data')
     is_header = True
     header = []
@@ -27,7 +27,7 @@ def fill_post(model, file):
 
         for field, value in zip(header, row):
             model_instanse.__setattr__(field, value)
-    model_instanse.save()
+        model_instanse.save()
 
 
 class Command(BaseCommand):
@@ -50,7 +50,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             model = apps.get_model(options['app'], options['model'])
-            fill_post(model, options['file'])
+            insert_data(model, options['file'])
         except Exception as e:
             raise CommandError(f'{e}')
 
