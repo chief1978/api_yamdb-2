@@ -9,10 +9,12 @@ class Test02CategoryAPI:
     def test_01_category_not_auth(self, client):
         response = client.get('/api/v1/categories/')
         assert response.status_code != 404, (
-            'Страница `/api/v1/categories/` не найдена, проверьте этот адрес в *urls.py*'
+            'Страница `/api/v1/categories/` не найдена, '
+            'проверьте этот адрес в *urls.py*'
         )
         assert response.status_code == 200, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` без токена авторизации возвращается статус 200'
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'без токена авторизации возвращается статус 200'
         )
 
     @pytest.mark.django_db(transaction=True)
@@ -20,7 +22,8 @@ class Test02CategoryAPI:
         data = {}
         response = admin_client.post('/api/v1/categories/', data=data)
         assert response.status_code == 400, (
-            'Проверьте, что при POST запросе `/api/v1/categories/` с не правильными данными возвращает статус 400'
+            'Проверьте, что при POST запросе `/api/v1/categories/` '
+            'с не правильными данными возвращает статус 400'
         )
         data = {
             'name': 'Фильм',
@@ -28,7 +31,8 @@ class Test02CategoryAPI:
         }
         response = admin_client.post('/api/v1/categories/', data=data)
         assert response.status_code == 201, (
-            'Проверьте, что при POST запросе `/api/v1/categories/` с правильными данными возвращает статус 201'
+            'Проверьте, что при POST запросе `/api/v1/categories/` '
+            'с правильными данными возвращает статус 201'
         )
         data = {
             'name': 'Новые фильмы',
@@ -36,7 +40,8 @@ class Test02CategoryAPI:
         }
         response = admin_client.post('/api/v1/categories/', data=data)
         assert response.status_code == 400, (
-            'Проверьте, что при POST запросе `/api/v1/categories/` нельзя создать 2 категории с одинаковым `slug`'
+            'Проверьте, что при POST запросе `/api/v1/categories/` '
+            'нельзя создать 2 категории с одинаковым `slug`'
         )
         data = {
             'name': 'Книги',
@@ -44,49 +49,60 @@ class Test02CategoryAPI:
         }
         response = admin_client.post('/api/v1/categories/', data=data)
         assert response.status_code == 201, (
-            'Проверьте, что при POST запросе `/api/v1/categories/` с правильными данными возвращает статус 201'
+            'Проверьте, что при POST запросе `/api/v1/categories/` '
+            'с правильными данными возвращает статус 201'
         )
         response = admin_client.get('/api/v1/categories/')
         assert response.status_code == 200, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` возвращает статус 200'
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'возвращает статус 200'
         )
         data = response.json()
         assert 'count' in data, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` возвращаете данные с пагинацией. '
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'возвращаете данные с пагинацией. '
             'Не найден параметр `count`'
         )
         assert 'next' in data, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` возвращаете данные с пагинацией. '
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'возвращаете данные с пагинацией. '
             'Не найден параметр `next`'
         )
         assert 'previous' in data, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` возвращаете данные с пагинацией. '
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'возвращаете данные с пагинацией. '
             'Не найден параметр `previous`'
         )
         assert 'results' in data, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` возвращаете данные с пагинацией. '
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'возвращаете данные с пагинацией. '
             'Не найден параметр `results`'
         )
         assert data['count'] == 2, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` возвращаете данные с пагинацией. '
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'возвращаете данные с пагинацией. '
             'Значение параметра `count` не правильное'
         )
         assert type(data['results']) == list, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` возвращаете данные с пагинацией. '
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'возвращаете данные с пагинацией. '
             'Тип параметра `results` должен быть список'
         )
         assert len(data['results']) == 2, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` возвращаете данные с пагинацией. '
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'возвращаете данные с пагинацией. '
             'Значение параметра `results` не правильное'
         )
         assert {'name': 'Книги', 'slug': 'books'} in data['results'], (
-            'Проверьте, что при GET запросе `/api/v1/categories/` возвращаете данные с пагинацией. '
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'возвращаете данные с пагинацией. '
             'Значение параметра `results` не правильное'
         )
         response = admin_client.get('/api/v1/categories/?search=Книги')
         data = response.json()
         assert len(data['results']) == 1, (
-            'Проверьте, что при GET запросе `/api/v1/categories/` фильтуется по search параметру названия категории'
+            'Проверьте, что при GET запросе `/api/v1/categories/` '
+            'фильтуется по search параметру названия категории'
         )
 
     @pytest.mark.django_db(transaction=True)
@@ -94,12 +110,14 @@ class Test02CategoryAPI:
         create_categories(admin_client)
         response = admin_client.delete('/api/v1/categories/books/')
         assert response.status_code == 204, (
-            'Проверьте, что при DELETE запросе `/api/v1/categories/{slug}/` возвращаете статус 204'
+            'Проверьте, что при DELETE запросе `/api/v1/categories/{slug}/` '
+            'возвращаете статус 204'
         )
         response = admin_client.get('/api/v1/categories/')
         test_data = response.json()['results']
         assert len(test_data) == 1, (
-            'Проверьте, что при DELETE запросе `/api/v1/categories/{slug}/` удаляете категорию '
+            'Проверьте, что при DELETE запросе `/api/v1/categories/{slug}/` '
+            'удаляете категорию '
         )
         response = admin_client.get('/api/v1/categories/books/')
         code = 405
@@ -124,10 +142,12 @@ class Test02CategoryAPI:
             f'Проверьте, что при POST запросе `/api/v1/categories/` '
             f'с токеном авторизации {user_name} возвращается статус 403'
         )
-        response = client_user.delete(f'/api/v1/categories/{categories[0]["slug"]}/')
+        response = client_user.delete(
+            f'/api/v1/categories/{categories[0]["slug"]}/'
+        )
         assert response.status_code == 403, (
-            f'Проверьте, что при DELETE запросе `/api/v1/categories/{{slug}}/` '
-            f'с токеном авторизации {user_name} возвращается статус 403'
+            f'Проверьте, что при DELETE запросе `/api/v1/categories/{{slug}}/`'
+            f' с токеном авторизации {user_name} возвращается статус 403'
         )
 
     @pytest.mark.django_db(transaction=True)
@@ -142,7 +162,9 @@ class Test02CategoryAPI:
             'Проверьте, что при POST запросе `/api/v1/categories/` '
             'без токена авторизации возвращается статус 401'
         )
-        response = client.delete(f'/api/v1/categories/{categories[0]["slug"]}/')
+        response = client.delete(
+            f'/api/v1/categories/{categories[0]["slug"]}/'
+        )
         assert response.status_code == 401, (
             'Проверьте, что при DELETE запросе `/api/v1/categories/{{slug}}/` '
             'без токена авторизации возвращается статус 401'
@@ -161,8 +183,8 @@ class Test02CategoryAPI:
         response = user_client.post(url, data=data)
         code = 403
         assert response.status_code == code, (
-            f'Проверьте, что при POST запросе на `{url}`, создание категорий недоступно для '
-            f'пользователя с ролью user'
+            f'Проверьте, что при POST запросе на `{url}`, создание категорий '
+            'недоступно для пользователя с ролью user'
         )
 
     @pytest.mark.django_db(transaction=True)
@@ -175,6 +197,6 @@ class Test02CategoryAPI:
         response = moderator_client.post(url, data=data)
         code = 403
         assert response.status_code == code, (
-            f'Проверьте, что при POST запросе на `{url}`, создание категорий недоступно для '
-            f'пользователя с ролью moderator'
+            f'Проверьте, что при POST запросе на `{url}`, создание категорий '
+            'недоступно для пользователя с ролью moderator'
         )
