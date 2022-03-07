@@ -1,10 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 
-from .models import Category, Genre, Title
-from .validators import UserFollowValidator
+from .models import Category, Genre, GenreTitle, Title
 
 User = get_user_model()
 
@@ -21,39 +19,38 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class GenreTitleSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('__all__')
-        model = Title
+        fields = '__all__'
+        model = Genre
 
 
-class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
-        slug_field='username',
+class TitleSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        many=False,
         read_only=True,
-        default=serializers.CurrentUserDefault(),
+        required=False,
+        slug_field='slug'
+    )
+    genre = GenreTitleSerializer(
+        many=True,
+        read_only=False,
         required=False
     )
-    following = SlugRelatedField(
-        slug_field='username',
-        queryset=User.objects.all(),
-        read_only=False,
-        many=False,
-        validators=[
-            UniqueValidator(
-                queryset=User.objects.all(),
-                message='Нельзя подписаться на не существующего пользователя'
-            )]
-    )
+    rating = serializers.SerializerMethodField()
 
     class Meta:
-        model = Follow
-        fields = ('user', 'following')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=('user', 'following'),
-                message='Такая подписка уже существует'
-            ),
-            UserFollowValidator(),
-        ]
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre,',
+                  'category')
+        model = Title
+
+    def get_rating(self, obj):
+        return 0
+
+    def create(self, validated_data):
+        genres_data = validated_data.pop('genre')
+        title = Title.objects.create(**validated_data)
+        for genre_data in genres_data:
+            genre = get_object_or_404(Genre, slug=genre_data['slug'])
+            GenreTitle.objects.create(title_id=title, genre_id=genre)
+        return title
