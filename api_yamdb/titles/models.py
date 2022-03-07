@@ -20,6 +20,7 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=256)
     year = models.PositiveSmallIntegerField()
+    description = models.TextField(default='')
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
         related_name="title",
@@ -32,6 +33,14 @@ class Title(models.Model):
 class GenreTitle(models.Model):
     title_id = models.ForeignKey(Title, on_delete=models.CASCADE)
     genre_id = models.ForeignKey(Genre, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title_id', 'genre_id'],
+                name='unique_name_owner'
+            )
+        ]
 
     def __str__(self):
         return f'{self.title_id} {self.genre_id}'
