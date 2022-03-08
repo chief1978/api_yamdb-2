@@ -75,3 +75,16 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
         model = Title
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email',
+            'first_name', 'last_name',
+            'bio', 'role',
+        )
+        extra_kwargs = {'email': {'required': True}}
+

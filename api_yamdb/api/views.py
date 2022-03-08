@@ -7,13 +7,15 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import Category, Genre, GenreTitle, Title
+from .mixins import MixinUsersViewset
 from .permissions import IsAdminOrReadOnly
 from .serializers import (
     CategorySerializer, GenreSerializer, SignupUserSerializer, TitleSerializer,
-    TokenSerializer,
+    TokenSerializer, UserSerializer,
 )
 
 User = get_user_model()
@@ -124,3 +126,12 @@ class TitleViewSet(viewsets.ModelViewSet):
         for genre_data in genres_data:
             genre = get_object_or_404(Genre, slug=genre_data)
             GenreTitle.objects.create(title_id=title, genre_id=genre)
+
+
+class UsersViewSet(MixinUsersViewset):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    permission_classes = (permissions.IsAdminUser)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    pagination_class = PageNumberPagination
