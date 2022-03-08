@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets
 from rest_framework.pagination import PageNumberPagination
 
-from .models import Category, Genre, Title
+from .models import Category, Genre, GenreTitle, Title
 from .permissions import IsAdminOrReadOnlyPermission
 from .serializers import CategorySerializer, GenreSerializer, TitleSerializer
 
@@ -33,7 +34,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    #permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('category', 'name', 'year')
     search_fields = ('name',)
@@ -42,7 +43,8 @@ class TitleViewSet(viewsets.ModelViewSet):
         queryset = Title.objects.all().order_by('id')
         genre = self.request.query_params.get('genre')
         if genre is not None:
-            pass
-            #qs = GenreTitle.objects.filter(title_id=self.id)
-            #queryset = queryset.filter(purchaser__username=username)
+            genre = get_object_or_404(Genre, slug=genre)
+            title_list = GenreTitle.objects.values_list(
+                'title_id', flat=True).filter(genre_id=genre)
+            queryset = Title.objects.filter(id__in=title_list).order_by('id')
         return queryset

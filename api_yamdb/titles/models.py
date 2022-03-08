@@ -26,14 +26,11 @@ class Title(models.Model):
         related_name="title",
         null=True, blank=True)
 
+    genre = models.ManyToManyField(Genre, through='GenreTitle')
+
     @property
     def rating(self):
         return 0
-
-    @property
-    def genre(self):
-        queryset = GenreTitle.objects.filter(title_id=self.id)
-        return Genre.objects.filter(id__in=queryset)
 
     def __str__(self):
         return self.name
@@ -55,7 +52,7 @@ class GenreTitle(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['title_id', 'genre_id'],
-                name='unique_name_owner'
+                name='unique_title_genre'
             )
         ]
 

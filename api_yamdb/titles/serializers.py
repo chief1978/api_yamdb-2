@@ -32,22 +32,16 @@ class TitleSerializer(serializers.ModelSerializer):
         required=False,
         slug_field='slug'
     )
-    genre = GenreTitleSerializer(
-        many=True,
-        read_only=False,
-        required=False
-    )
-    #rating = serializers.SerializerMethodField()
 
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
         model = Title
 
-    def create(self, validated_data):
+    def update(self, instance, validated_data):
         genres_data = validated_data.pop('genre')
-        title = Title.objects.create(**validated_data)
+        title = Title.objects.update(**validated_data)
         for genre_data in genres_data:
             genre = get_object_or_404(Genre, slug=genre_data['slug'])
-            GenreTitle.objects.create(title_id=title, genre_id=genre)
+            GenreTitle.objects.create(genre=title, genre_id=genre)
         return title
