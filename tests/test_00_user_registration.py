@@ -76,7 +76,7 @@ class Test00UserRegistration:
         response = client.post(self.url_signup, data=invalid_data)
         assert response.status_code == code, (
             f'Проверьте, что при {request_type} запросе '
-            '`{self.url_signup}` без username '
+            f'`{self.url_signup}` без username '
             f'нельзя создать пользователя и возвращается статус {code}'
         )
 

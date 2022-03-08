@@ -9,3 +9,4 @@ drf-yasg==1.20.0
 flake8==4.0.1
 isort==5.10.1
 ipython==7.29.0
+djangorestframework-simplejwt==4.7.2
