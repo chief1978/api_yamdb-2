@@ -65,7 +65,7 @@ def create_titles(admin_client):
     result = []
     data = {
         'name': 'Поворот туда',
-        'year': 2000, 
+        'year': 2000,
         'genre': [genres[0]['slug'], genres[1]['slug']],
         'category': categories[0]['slug'],
         'description': 'Крутое пике'
