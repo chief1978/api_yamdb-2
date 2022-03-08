@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnlyPermission,)
@@ -21,7 +21,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class GenreViewSet(viewsets.ModelViewSet):
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnlyPermission,)
@@ -31,10 +31,18 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filterset_fields = ('category', 'genre', 'name', 'year')
+    filterset_fields = ('category', 'name', 'year')
     search_fields = ('name',)
+
+    def get_queryset(self):
+        queryset = Title.objects.all().order_by('id')
+        genre = self.request.query_params.get('genre')
+        if genre is not None:
+            pass
+            #qs = GenreTitle.objects.filter(title_id=self.id)
+            #queryset = queryset.filter(purchaser__username=username)
+        return queryset
