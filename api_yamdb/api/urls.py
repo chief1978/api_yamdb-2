@@ -9,6 +9,7 @@ router = DefaultRouter()
 router.register(r'categories', views.CategoryViewSet)
 router.register(r'genres', views.GenreViewSet)
 router.register(r'titles', views.TitleViewSet, basename='titles')
+router.register(r'users', views.UsersViewSet)
 
 urlpatterns = [
     path('v1/auth/signup/', views.send_confirmation_code, name='signup'),

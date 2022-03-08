@@ -4,11 +4,10 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, GenreTitle, Title
 from .mixins import MixinUsersViewset
@@ -22,6 +21,7 @@ User = get_user_model()
 
 
 @api_view(['POST'])
+@permission_classes((permissions.AllowAny,))
 def send_confirmation_code(request):
     serializer = SignupUserSerializer(data=request.data)
     if serializer.is_valid():
@@ -48,13 +48,16 @@ def send_confirmation_code(request):
 
 
 @api_view(['POST'])
+@permission_classes((permissions.AllowAny,))
 def get_token(request):
     serializer = TokenSerializer(data=request.data)
     if serializer.is_valid():
         data = serializer.save()
         user = get_object_or_404(User, username=data['username'])
-        refresh = RefreshToken.for_user(user)
-        token = str(refresh.access_token)
+        user.password = ''
+        user.save()
+        token = str(AccessToken.for_user(user))
+        # token = str(refresh.access_token)
         return Response(
             {'token': token},
             status=status.HTTP_200_OK
@@ -131,7 +134,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class UsersViewSet(MixinUsersViewset):
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    permission_classes = (permissions.IsAdminUser)
+    permission_classes = (permissions.IsAdminUser,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     pagination_class = PageNumberPagination
