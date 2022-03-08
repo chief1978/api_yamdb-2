@@ -26,13 +26,30 @@ class Title(models.Model):
         related_name="title",
         null=True, blank=True)
 
+    @property
+    def rating(self):
+        return 0
+
+    @property
+    def genre(self):
+        queryset = GenreTitle.objects.filter(title_id=self.id)
+        return Genre.objects.filter(id__in=queryset)
+
     def __str__(self):
         return self.name
 
 
 class GenreTitle(models.Model):
-    title_id = models.ForeignKey(Title, on_delete=models.CASCADE)
-    genre_id = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    title_id = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        related_name="title",
+    )
+    genre_id = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+        related_name="genre",
+    )
 
     class Meta:
         constraints = [

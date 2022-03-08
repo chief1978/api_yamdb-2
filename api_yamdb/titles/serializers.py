@@ -37,15 +37,12 @@ class TitleSerializer(serializers.ModelSerializer):
         read_only=False,
         required=False
     )
-    rating = serializers.SerializerMethodField()
+    #rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre,',
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
         model = Title
-
-    def get_rating(self, obj):
-        return 0
 
     def create(self, validated_data):
         genres_data = validated_data.pop('genre')
