@@ -26,3 +26,10 @@ class User(AbstractUser):
         choices=USER_ROLE,
         default='user'
     )
+
+    def save(self, *args, **kwargs):
+        if self.role == 'admin':
+            self.is_staff = True
+        else:
+            self.is_staff = False
+        super().save(*args, **kwargs)
