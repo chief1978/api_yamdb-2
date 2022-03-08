@@ -1,13 +1,21 @@
+import codecs
 import csv
 import os
 
 from django.apps import apps
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import ForeignKey
+
+
+def get_fk_model(model, fieldname):
+    field_object = model._meta.get_field(fieldname)
+    if isinstance(field_object, ForeignKey):
+        return field_object.related_model
 
 
 def csv_parser(csv_filename):
-    with open(csv_filename) as csv_fd:
+    with codecs.open(csv_filename, 'r', 'utf_8_sig') as csv_fd:
         reader = csv.reader(csv_fd, delimiter=',')
         for row in reader:
             if row:
@@ -26,7 +34,11 @@ def insert_data(model, file):
             continue
 
         for field, value in zip(header, row):
-            model_instanse.__setattr__(field, value)
+            rel_model = get_fk_model(model_instanse, field)
+            if rel_model is not None:
+                model_instanse.__setattr__(field, rel_model(value))
+            else:
+                model_instanse.__setattr__(field, value)
         model_instanse.save()
 
 
