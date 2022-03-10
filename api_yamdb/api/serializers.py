@@ -35,13 +35,19 @@ class TokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField(max_length=30)
     username = serializers.CharField(max_length=30)
 
-    def validate_confirmation_code(self, value):
-        user = get_object_or_404(User, username=self.initial_data['username'])
-        if not default_token_generator.check_token(user=user, token=value):
+    def validate(self, data):
+        user = get_object_or_404(
+            User,
+            username=data.get('username')
+        )
+        if not default_token_generator.check_token(
+            user=user,
+            token=data.get('confirmation_code')
+        ):
             raise serializers.ValidationError(
                 'Неверный `confirmation_code` или истёк его срок годности.'
             )
-        return value
+        return data
 
     def create(self, validated_data):
         return validated_data
@@ -77,7 +83,7 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
@@ -88,3 +94,32 @@ class UserSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {'email': {'required': True}}
 
+    def validate(self, data):
+        if User.objects.filter(email=data.get('email')).exists():
+            raise serializers.ValidationError(
+                'Пользователь с таким `email` уже зарегистрирован.'
+            )
+        return data
+
+
+class OneUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email',
+            'first_name', 'last_name',
+            'bio', 'role',
+        )
+
+
+class MyselfSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email',
+            'first_name', 'last_name',
+            'bio', 'role',
+        )
+        extra_kwargs = {'role': {'read_only': True}}

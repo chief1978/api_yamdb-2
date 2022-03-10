@@ -5,16 +5,18 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, GenreTitle, Title
 from .mixins import MixinUsersViewset
 from .permissions import IsAdminOrReadOnly
 from .serializers import (
-    CategorySerializer, GenreSerializer, SignupUserSerializer, TitleSerializer,
-    TokenSerializer, UserSerializer,
+    CategorySerializer, GenreSerializer, MyselfSerializer,
+    SignupUserSerializer, TitleSerializer, TokenSerializer, UserSerializer,
+    UsersSerializer,
 )
 
 User = get_user_model()
@@ -57,7 +59,6 @@ def get_token(request):
         user.password = ''
         user.save()
         token = str(AccessToken.for_user(user))
-        # token = str(refresh.access_token)
         return Response(
             {'token': token},
             status=status.HTTP_200_OK
@@ -133,8 +134,34 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class UsersViewSet(MixinUsersViewset):
     serializer_class = UserSerializer
+class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
     permission_classes = (permissions.IsAdminUser,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('username',)
-    pagination_class = PageNumberPagination
+    serializer_class = UsersSerializer
+    lookup_field = 'username'
+    lookup_url_kwargs = 'username'
+    lookup_value_regex = r'[\w.@+-]+'
+
+    def get_object(self):
+        if self.kwargs.get('username', None) == 'me':
+            self.kwargs['username'] = self.request.user.username
+        return super(UsersViewSet, self).get_object()
+
+
+class MyselfViewSet(APIView):
+
+    def get_object(self, username):
+        return get_object_or_404(User, username=username)
+
+    def get(self, request):
+        user = self.get_object(request.user.username)
+        serializer = MyselfSerializer(user)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        user = self.get_object(request.user.username)
+        serializer = MyselfSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

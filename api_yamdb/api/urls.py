@@ -14,5 +14,7 @@ router.register(r'users', views.UsersViewSet)
 urlpatterns = [
     path('v1/auth/signup/', views.send_confirmation_code, name='signup'),
     path('v1/auth/token/', views.get_token, name='token'),
+    path('v1/users/me/', views.MyselfViewSet.as_view()),
     path('v1/', include(router.urls)),
+
 ]
