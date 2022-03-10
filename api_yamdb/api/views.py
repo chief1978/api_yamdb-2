@@ -9,6 +9,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, GenreTitle, Title
@@ -74,6 +75,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
+    authentication_classes = (JWTTokenUserAuthentication,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     search_fields = ('name', 'slug')
@@ -86,6 +88,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     serializer_class = GenreSerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
+    authentication_classes = (JWTTokenUserAuthentication,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     search_fields = ('name', 'slug')
