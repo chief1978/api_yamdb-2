@@ -13,10 +13,10 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=256)
+    slug = models.SlugField(unique=True)
     
-
     def __str__(self):
-        return self.name
+        return self.slug
 
 
 class Title(models.Model):

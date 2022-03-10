@@ -10,8 +10,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets
 from rest_framework.pagination import PageNumberPagination
 
-from .models import Category, Genre, GenreTitle, Title
-from .permissions import IsAdminOrReadOnlyPermission
+from reviews.models import Category, Genre, GenreTitle, Title
+from .permissions import IsAdminOrReadOnly
 from .serializers import SignupUserSerializer, TokenSerializer, CategorySerializer, GenreSerializer, TitleSerializer
 
 User = get_user_model()
@@ -66,20 +66,24 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnlyPermission,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     search_fields = ('name', 'slug')
+    lookup_field = 'slug'
+    lookup_value_regex = "[^/]+"
 
 
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnlyPermission,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     search_fields = ('name', 'slug')
+    lookup_field = 'slug'
+    lookup_value_regex = "[^/]+"
 
 
 class TitleViewSet(viewsets.ModelViewSet):
