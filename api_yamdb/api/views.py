@@ -5,18 +5,17 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, GenreTitle, Title
-from .mixins import MixinUsersViewset
 from .permissions import IsAdminOrReadOnly
 from .serializers import (
     CategorySerializer, GenreSerializer, MyselfSerializer,
-    SignupUserSerializer, TitleSerializer, TokenSerializer, UserSerializer,
-    UsersSerializer,
+    SignupUserSerializer, TitleSerializer, TokenSerializer, UsersSerializer,
 )
 
 User = get_user_model()
@@ -132,8 +131,6 @@ class TitleViewSet(viewsets.ModelViewSet):
             GenreTitle.objects.create(title_id=title, genre_id=genre)
 
 
-class UsersViewSet(MixinUsersViewset):
-    serializer_class = UserSerializer
 class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
     permission_classes = (permissions.IsAdminUser,)
