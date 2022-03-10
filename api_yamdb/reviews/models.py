@@ -1,6 +1,7 @@
-from django.db import models
-from django.core.validators import MaxValueValidator
 from datetime import date
+
+from django.core.validators import MaxValueValidator
+from django.db import models
 
 
 class Category(models.Model):
@@ -14,7 +15,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True)
-    
+
     def __str__(self):
         return self.slug
 
@@ -22,7 +23,7 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=256)
     year = models.PositiveSmallIntegerField(
-        validators=[MaxValueValidator(int(date.today().year)),]
+        validators=[MaxValueValidator(int(date.today().year)), ]
     )
     description = models.TextField(default='', null=True, blank=True)
     category = models.ForeignKey(

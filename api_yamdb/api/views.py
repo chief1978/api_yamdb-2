@@ -2,17 +2,19 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import api_view
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, viewsets
-from rest_framework.pagination import PageNumberPagination
 
 from reviews.models import Category, Genre, GenreTitle, Title
 from .permissions import IsAdminOrReadOnly
-from .serializers import SignupUserSerializer, TokenSerializer, CategorySerializer, GenreSerializer, TitleSerializer
+from .serializers import (
+    CategorySerializer, GenreSerializer, SignupUserSerializer, TitleSerializer,
+    TokenSerializer,
+)
 
 User = get_user_model()
 
