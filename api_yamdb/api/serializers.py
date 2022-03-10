@@ -3,6 +3,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
+from reviews.models import Category, Genre, GenreTitle, Title
+
 User = get_user_model()
 
 
@@ -43,3 +45,33 @@ class TokenSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return validated_data
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        lookup_field = 'slug'
+        model = Category
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        lookup_field = 'slug'
+        model = Genre
+
+
+class GenreTitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = GenreTitle
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(many=False, read_only=True, required=False)
+    genre = GenreSerializer(many=True, read_only=True, required=False)
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
+                  'category')
+        model = Title
