@@ -27,7 +27,6 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_yasg',
     'rest_framework',
-    'titles.apps.TitlesConfig',
     'reviews.apps.ReviewsConfig',
     'api.apps.ApiConfig',
     'core.apps.CoreConfig',
@@ -124,7 +123,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 100,
+    'PAGE_SIZE': 10,
 }
 
 # Simple JWT
