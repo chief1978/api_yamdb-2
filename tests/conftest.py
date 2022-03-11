@@ -15,8 +15,9 @@ if (
         or not os.path.isdir(os.path.join(BASE_DIR, PROJECT_DIR_NAME))
 ):
     assert False, (
-        f'В директории `{BASE_DIR}` не найдена папка c проектом `{PROJECT_DIR_NAME}`. '
-        f'Убедитесь, что у вас верная структура проекта.'
+        f'В директории `{BASE_DIR}` не найдена '
+        f'папка c проектом `{PROJECT_DIR_NAME}`. '
+        'Убедитесь, что у вас верная структура проекта.'
     )
 
 MANAGE_PATH = os.path.join(BASE_DIR, PROJECT_DIR_NAME)
