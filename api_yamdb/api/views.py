@@ -9,7 +9,6 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, GenreTitle, Title
@@ -74,8 +73,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnly,)
-    authentication_classes = (JWTTokenUserAuthentication,)
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminOrReadOnly,
+    )
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     search_fields = ('name', 'slug')
@@ -87,8 +88,10 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnly,)
-    authentication_classes = (JWTTokenUserAuthentication,)
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminOrReadOnly,
+    )
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     search_fields = ('name', 'slug')
@@ -99,7 +102,11 @@ class GenreViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (
+        #permissions.AllowAny,
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminOrReadOnly,
+    )
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('category', 'name', 'year')
     search_fields = ('name',)
@@ -117,10 +124,11 @@ class TitleViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         category_slug = self.request.data['category']
         category = get_object_or_404(Category, slug=category_slug)
-        title = serializer.save(category=category)
         genres_data = self.request.data['genre']
+        title = serializer.save(category=category)
         for genre_data in genres_data:
             genre = get_object_or_404(Genre, slug=genre_data)
+            #genre = Genre.objects.get(slug=genre_data)
             GenreTitle.objects.create(title_id=title, genre_id=genre)
 
     def perform_update(self, serializer):

@@ -56,14 +56,14 @@ class TokenSerializer(serializers.Serializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
-        lookup_field = 'slug'
+        #lookup_field = 'slug'
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
-        lookup_field = 'slug'
+        #lookup_field = 'slug'
         model = Genre
 
 
