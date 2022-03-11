@@ -27,6 +27,9 @@ class User(AbstractUser):
         default='user'
     )
 
+    class Meta:
+        ordering = ('-date_joined',)
+
     def save(self, *args, **kwargs):
         if self.role == 'admin':
             self.is_staff = True

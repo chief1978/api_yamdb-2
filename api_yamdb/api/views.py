@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
+# from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -18,6 +18,7 @@ from .serializers import (
     ReviewSerializer, SignupUserSerializer, TitleSerializer, TokenSerializer,
     UsersSerializer,
 )
+from .tokens import default_token_generator
 
 User = get_user_model()
 
@@ -27,7 +28,7 @@ User = get_user_model()
 def send_confirmation_code(request):
     serializer = SignupUserSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(password='1234')
+        serializer.save()
         code = default_token_generator.make_token(serializer.instance)
         send_mail(
             subject='confirmation_code',
@@ -145,7 +146,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (IsAdminUser,)
     serializer_class = UsersSerializer
     lookup_field = 'username'
     lookup_url_kwargs = 'username'
