@@ -3,7 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from reviews.models import Category, Genre, GenreTitle, Title
+from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 
 User = get_user_model()
 
@@ -123,3 +123,40 @@ class MyselfSerializer(serializers.ModelSerializer):
             'bio', 'role',
         )
         extra_kwargs = {'role': {'read_only': True}}
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+    )
+    title_id = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='slug'
+    )
+
+    def validate(self, data):
+        if data['score'] not in range(1, 11):
+            raise serializers.ValidationError(
+                "Оценка должна быть в диапазоне [1, 10]"
+            )
+        return data
+
+    class Meta:
+        fields = '__all__'
+        model = Review
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+    )
+    review_id = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='slug'
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Comment

@@ -43,3 +43,19 @@ class IsAuthorOrAdminOrModerator(permissions.BasePermission):
             or request.user.role == 'admin'
             or request.user.role == 'moderator'
         )
+
+
+class AuthorOrAdminOrModerator(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_superuser:
+            return True
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if request.method == "POST":
+            return request.user.is_authenticated()
+        return (
+            obj.author == request.user
+            or request.user.USER_ROLE == 'admin'
+            or request.user.USER_ROLE == 'moderator'
+        )

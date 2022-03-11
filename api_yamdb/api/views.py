@@ -11,11 +11,12 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Category, Genre, GenreTitle, Title
-from .permissions import IsAdminOrReadOnly
+from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
+from .permissions import AuthorOrAdminOrModerator, IsAdminOrReadOnly
 from .serializers import (
-    CategorySerializer, GenreSerializer, MyselfSerializer,
-    SignupUserSerializer, TitleSerializer, TokenSerializer, UsersSerializer,
+    CategorySerializer, CommentSerializer, GenreSerializer, MyselfSerializer,
+    ReviewSerializer, SignupUserSerializer, TitleSerializer, TokenSerializer,
+    UsersSerializer,
 )
 
 User = get_user_model()
@@ -162,3 +163,31 @@ class MyselfViewSet(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (AuthorOrAdminOrModerator,)
+    pagination_class = PageNumberPagination
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def get_queryset(self):
+        review = self.kwargs.get('review_id')
+        new_queryset = Comment.objects.filter(review_id=review)
+        return new_queryset
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = (AuthorOrAdminOrModerator,)
+    pagination_class = PageNumberPagination
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def get_queryset(self):
+        title = self.kwargs.get('title_id')
+        new_queryset = Review.objects.filter(title_id=title)
+        return new_queryset
