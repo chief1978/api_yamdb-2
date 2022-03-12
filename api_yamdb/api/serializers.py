@@ -56,14 +56,12 @@ class TokenSerializer(serializers.Serializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
-        #lookup_field = 'slug'
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
-        #lookup_field = 'slug'
         model = Genre
 
 
@@ -74,13 +72,32 @@ class GenreTitleSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(many=False, read_only=True, required=False)
-    genre = GenreSerializer(many=True, read_only=True, required=False)
+    category = serializers.SlugRelatedField(
+        many=False,
+        slug_field='slug',
+        queryset=Category.objects.all(),
+    )
+    genre = serializers.SlugRelatedField(
+        many=True,
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+    )
 
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
         model = Title
+
+    def create(self, validated_data):
+        if 'genre' not in self.initial_data:
+            titles = Title.objects.create(**validated_data)
+            return titles
+        genres = validated_data.pop('genre')
+        titles = Title.objects.create(**validated_data)
+        for genre in genres:
+            current_genre = get_object_or_404(Genre, slug=genre)
+            GenreTitle.objects.create(genre_id=current_genre, title_id=titles)
+        return titles
 
 
 class UsersSerializer(serializers.ModelSerializer):
