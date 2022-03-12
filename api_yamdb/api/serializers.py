@@ -184,7 +184,6 @@ class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
-        default=serializers.CurrentUserDefault(),
     )
     review_id = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
 

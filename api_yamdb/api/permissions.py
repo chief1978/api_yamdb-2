@@ -88,10 +88,12 @@ class AuthorOrAdminOrModerator(permissions.BasePermission):
             return True
         if request.method == "POST":
             return request.user.is_authenticated
-        return (
-            request.user.USER_ROLE == 'admin'
-            or request.user.USER_ROLE == 'moderator'
-        )
+        if not request.user.is_anonymous:
+            return (
+                request.user.USER_ROLE == 'admin'
+                or request.user.USER_ROLE == 'moderator'
+            )
+        return False
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_superuser:
