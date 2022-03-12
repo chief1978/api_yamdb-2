@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-# from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,7 +11,10 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
-from .permissions import AuthorOrAdminOrModerator, IsAdminOrReadOnly
+from .mixins import BaseViewSet
+from .permissions import (
+    AuthorOrAdminOrModerator, IsAdminOrReadOnly, IsModerator,
+)
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer, MyselfSerializer,
     ReviewSerializer, SignupUserSerializer, TitleSerializer, TokenSerializer,
@@ -71,14 +73,10 @@ def get_token(request):
     )
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(BaseViewSet):
     queryset = Category.objects.all().order_by('id')
     serializer_class = CategorySerializer
-    pagination_class = PageNumberPagination
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-        IsAdminOrReadOnly,
-    )
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     search_fields = ('name', 'slug')
@@ -86,14 +84,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     lookup_value_regex = "[^/]+"
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(BaseViewSet):
     queryset = Genre.objects.all().order_by('id')
     serializer_class = GenreSerializer
-    pagination_class = PageNumberPagination
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-        IsAdminOrReadOnly,
-    )
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     search_fields = ('name', 'slug')
@@ -103,12 +97,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
-    pagination_class = PageNumberPagination
-    permission_classes = (
-        #permissions.AllowAny,
-        permissions.IsAuthenticatedOrReadOnly,
-        IsAdminOrReadOnly,
-    )
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('category', 'name', 'year')
     search_fields = ('name',)
@@ -126,12 +115,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         category_slug = self.request.data['category']
         category = get_object_or_404(Category, slug=category_slug)
-        genres_data = self.request.data['genre']
-        title = serializer.save(category=category)
-        for genre_data in genres_data:
-            genre = get_object_or_404(Genre, slug=genre_data)
-            #genre = Genre.objects.get(slug=genre_data)
-            GenreTitle.objects.create(title_id=title, genre_id=genre)
+        serializer.save(category=category)
 
     def perform_update(self, serializer):
         category_slug = self.request.data['category']
@@ -146,7 +130,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = (IsAdminUser,)
+    permission_classes = (permissions.IsAdminUser,)
     serializer_class = UsersSerializer
     lookup_field = 'username'
     lookup_url_kwargs = 'username'
@@ -179,8 +163,11 @@ class MyselfViewSet(APIView):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (AuthorOrAdminOrModerator,)
-    pagination_class = PageNumberPagination
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly
+        or permissions.IsAdminUser
+        or IsModerator,
+    )
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

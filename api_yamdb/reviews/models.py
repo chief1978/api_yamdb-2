@@ -37,7 +37,7 @@ class Title(models.Model):
 
     @property
     def rating(self):
-        return 0
+        return None
 
     def __str__(self):
         return self.name
