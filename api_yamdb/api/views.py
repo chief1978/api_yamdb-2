@@ -12,9 +12,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 from .custom_filters import CategoryFilter
 from .mixins import BaseViewSet
-from .permissions import (
-    AuthorOrAdminOrModerator, IsAdminOrReadOnly, IsModerator,
-)
+from .permissions import AuthorOrAdminOrModerator, IsAdminOrReadOnly
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer, MyselfSerializer,
     ReviewSerializer, SignupUserSerializer, TitleGETSerializer,
@@ -165,9 +163,7 @@ class MyselfViewSet(APIView):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly
-        or permissions.IsAdminUser
-        or IsModerator,
+        AuthorOrAdminOrModerator,
     )
 
     def perform_create(self, serializer):
