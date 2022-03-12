@@ -37,7 +37,12 @@ class Title(models.Model):
 
     @property
     def rating(self):
-        return None
+        if Review.objects.filter(title_id=self.id).count() == 0:
+            return None
+        rating = Review.objects.filter(title_id=self.id).aggregate(
+            models.Avg('score')
+        )
+        return(rating['score__avg'])
 
     def __str__(self):
         return self.name
