@@ -64,22 +64,34 @@ class IsModerator(permissions.BasePermission):
         return request.user.role == 'moderator'
 
 
-class IsAuthorOrAdminOrModerator(permissions.BasePermission):
+# class IsAuthorOrAdminOrModerator(permissions.BasePermission):
 
-    def has_object_permission(self, request, view, obj):
-        if request.user.is_superuser:
-            return True
-        if request.method in permissions.SAFE_METHODS:
-            return request.method in permissions.SAFE_METHODS
+#     def has_object_permission(self, request, view, obj):
+#         if request.user.is_superuser:
+#             return True
+#         if request.method in permissions.SAFE_METHODS:
+#             return request.method in permissions.SAFE_METHODS
 
-        return (
-            request.user == obj.author
-            or request.user.role == 'moderator'
-            or request.user.is_superuser
-        )
+#         return (
+#             request.user == obj.author
+#             or request.user.role == 'moderator'
+#             or request.user.is_superuser
+#         )
 
 
 class AuthorOrAdminOrModerator(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        if request.user.is_superuser:
+            return True
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if request.method == "POST":
+            return request.user.is_authenticated
+        return (
+            request.user.USER_ROLE == 'admin'
+            or request.user.USER_ROLE == 'moderator'
+        )
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_superuser:
@@ -87,7 +99,7 @@ class AuthorOrAdminOrModerator(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         if request.method == "POST":
-            return request.user.is_authenticated()
+            return request.user.is_authenticated
         return (
             obj.author == request.user
             or request.user.USER_ROLE == 'admin'

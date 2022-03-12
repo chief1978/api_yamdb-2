@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -100,7 +99,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = CategoryFilter
-    # filterset_fields = ('category__slug', 'name', 'year')
     search_fields = ('name',)
 
     def get_serializer_class(self):
@@ -189,12 +187,13 @@ class CommentViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (AuthorOrAdminOrModerator,)
-    pagination_class = PageNumberPagination
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(
+            author=self.request.user,
+            title_id=get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        )
 
     def get_queryset(self):
-        title = self.kwargs.get('title_id')
-        new_queryset = Review.objects.filter(title_id=title)
-        return new_queryset
+        title_id = self.kwargs.get('title_id')
+        return Review.objects.filter(title_id=title_id)
