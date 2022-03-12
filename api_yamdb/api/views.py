@@ -191,6 +191,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title_id=title)
 
     def get_queryset(self):
-        title_id = self.request.query_params.get('title_id')
+        title_id = self.kwargs.get('title_id')
         new_queryset = Review.objects.filter(title_id=title_id).order_by('id')
         return new_queryset
