@@ -116,11 +116,6 @@ class TitleViewSet(viewsets.ModelViewSet):
             queryset = Title.objects.filter(id__in=title_list).order_by('id')
         return queryset
 
-    def perform_create(self, serializer):
-        category_slug = self.request.data['category']
-        category = get_object_or_404(Category, slug=category_slug)
-        serializer.save(category=category)
-
     def perform_update(self, serializer):
         category_slug = self.request.data['category']
         category = get_object_or_404(Category, slug=category_slug)
@@ -135,7 +130,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class UsersViewSet(ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('id')
     permission_classes = (permissions.IsAdminUser,)
     serializer_class = UsersSerializer
     lookup_field = 'username'
@@ -176,11 +171,13 @@ class CommentViewSet(viewsets.ModelViewSet):
     )
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id)
+        serializer.save(author=self.request.user, review_id=review)
 
     def get_queryset(self):
         review = self.kwargs.get('review_id')
-        new_queryset = Comment.objects.filter(review_id=review)
+        new_queryset = Comment.objects.filter(review_id=review).order_by('id')
         return new_queryset
 
 
@@ -189,11 +186,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (AuthorOrAdminOrModerator,)
 
     def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user,
-            title_id=get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        )
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        serializer.save(author=self.request.user, title_id=title)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        return Review.objects.filter(title_id=title_id)
+        new_queryset = Review.objects.filter(title_id=title_id).order_by('id')
+        return new_queryset

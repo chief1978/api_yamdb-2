@@ -1,10 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
-from .tokens import default_token_generator
 
 User = get_user_model()
 
@@ -76,6 +75,15 @@ class TitleGETSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True, required=False)
     genre = GenreSerializer(many=True, read_only=True, required=False)
 
+    def create(self, validated_data):
+        genre_data = validated_data.pop('genre')
+        instance = Title(**validated_data)
+        title = instance.save()
+        for genre in genre_data:
+            Title.objects.create(title=title, **genre)
+
+        return title
+
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
@@ -129,6 +137,17 @@ class UsersSerializer(serializers.ModelSerializer):
         return data
 
 
+class OneUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email',
+            'first_name', 'last_name',
+            'bio', 'role',
+        )
+
+
 class MyselfSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -143,10 +162,11 @@ class MyselfSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True,
         slug_field='username',
-        default=serializers.CurrentUserDefault()
+        read_only=True,
     )
+
+    title_id = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
 
     def validate(self, data):
         if data['score'] not in range(1, 11):
@@ -158,24 +178,15 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
-        read_only_fields = ('title_id',)
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('author', 'title_id'),
-            )
-        ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
+        slug_field='username',
         read_only=True,
-        slug_field='username'
+        default=serializers.CurrentUserDefault(),
     )
-    review_id = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='slug'
-    )
+    review_id = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
 
     class Meta:
         fields = '__all__'
