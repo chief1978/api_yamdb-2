@@ -71,9 +71,18 @@ class GenreTitleSerializer(serializers.ModelSerializer):
         model = GenreTitle
 
 
+class TitleGETSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True, required=False)
+    genre = GenreSerializer(many=True, read_only=True, required=False)
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
+                  'category')
+        model = Title
+
+
 class TitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
-        many=False,
         slug_field='slug',
         queryset=Category.objects.all(),
     )
@@ -98,6 +107,13 @@ class TitleSerializer(serializers.ModelSerializer):
             current_genre = get_object_or_404(Genre, slug=genre)
             GenreTitle.objects.create(genre_id=current_genre, title_id=titles)
         return titles
+
+    # def update(self, instance, validated_data):
+    #     instance.email = validated_data.get('email', instance.email)
+    #     instance.content = validated_data.get('content', instance.content)
+    #     instance.created = validated_data.get('created', instance.created)
+    #     instance.save()
+    #     return instance
 
 
 class UsersSerializer(serializers.ModelSerializer):

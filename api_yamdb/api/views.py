@@ -11,14 +11,15 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
+from .custom_filters import CategoryFilter
 from .mixins import BaseViewSet
 from .permissions import (
     AuthorOrAdminOrModerator, IsAdminOrReadOnly, IsModerator,
 )
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer, MyselfSerializer,
-    ReviewSerializer, SignupUserSerializer, TitleSerializer, TokenSerializer,
-    UsersSerializer,
+    ReviewSerializer, SignupUserSerializer, TitleGETSerializer,
+    TitleSerializer, TokenSerializer, UsersSerializer,
 )
 from .tokens import default_token_generator
 
@@ -96,11 +97,16 @@ class GenreViewSet(BaseViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filterset_fields = ('category', 'name', 'year')
+    filterset_class = CategoryFilter
+    # filterset_fields = ('category__slug', 'name', 'year')
     search_fields = ('name',)
+
+    def get_serializer_class(self):
+        if self.action in ('retrieve', 'list'):
+            return TitleGETSerializer
+        return TitleSerializer
 
     def get_queryset(self):
         queryset = Title.objects.all().order_by('id')
@@ -122,8 +128,10 @@ class TitleViewSet(viewsets.ModelViewSet):
         category = get_object_or_404(Category, slug=category_slug)
         title = serializer.save(category=category)
         title.genre.clear()
-        genres_data = self.request.data['genre']
-        for genre_data in genres_data:
+        genres_data = self.request.data.get('genre')
+        if genres_data is None:
+            genres_data = serializer.instance.genre
+        for genre_data in genres_data.all():
             genre = get_object_or_404(Genre, slug=genre_data)
             GenreTitle.objects.create(title_id=title, genre_id=genre)
 
