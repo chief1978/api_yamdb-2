@@ -76,6 +76,15 @@ class TitleGETSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True, required=False)
     genre = GenreSerializer(many=True, read_only=True, required=False)
 
+    def create(self, validated_data):
+        genre_data = validated_data.pop('genre') #if 'genre_data' in validated_data else []
+        instance = Title(**validated_data)
+        title = instance.save()
+        for genre in genre_data:
+            Title.objects.create(title=title, **genre)
+
+        return title
+
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')

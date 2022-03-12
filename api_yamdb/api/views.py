@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -116,10 +118,14 @@ class TitleViewSet(viewsets.ModelViewSet):
             queryset = Title.objects.filter(id__in=title_list).order_by('id')
         return queryset
 
-    def perform_create(self, serializer):
-        category_slug = self.request.data['category']
-        category = get_object_or_404(Category, slug=category_slug)
-        serializer.save(category=category)
+    #def perform_create(self, serializer):
+    #    category_slug = self.request.data['category']
+    #    category = get_object_or_404(Category, slug=category_slug)
+    #    genres_data = self.request.data['genre']
+    #    title = serializer.save(category=category)
+    #    for genre_data in genres_data:
+    #        genre = get_object_or_404(Genre, slug=genre_data)
+    #        GenreTitle.objects.create(title_id=title, genre_id=genre)
 
     def perform_update(self, serializer):
         category_slug = self.request.data['category']
