@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 
@@ -137,17 +138,6 @@ class UsersSerializer(serializers.ModelSerializer):
         return data
 
 
-class OneUserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email',
-            'first_name', 'last_name',
-            'bio', 'role',
-        )
-
-
 class MyselfSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -178,6 +168,12 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=Review.objects.all(),
+        #         fields=('author', 'title_id'),
+        #     )
+        # ]  с эти нужно что то придумать, почему то с этим падают ещё другие тесты)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -191,3 +187,4 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Comment
+        extra_kwargs = {'text': {'required': True}}
