@@ -11,7 +11,7 @@ router.register(r'genres', views.GenreViewSet)
 router.register(r'titles', views.TitleViewSet, basename='titles')
 router.register(r'users', views.UsersViewSet)
 router.register(
-    r'titles/(?P<title_id>[^/.]+)/reviews',
+    r'titles/(?P<title_id>[0-9]+)/reviews',
     views.ReviewViewSet,
     basename='reviews'
 )
