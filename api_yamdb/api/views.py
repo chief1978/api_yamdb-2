@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -96,7 +95,6 @@ class GenreViewSet(BaseViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = CategoryFilter
     search_fields = ('name',)
@@ -175,8 +173,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review = self.kwargs.get('review_id')
-        new_queryset = Comment.objects.filter(review_id=review).order_by('id')
-        return new_queryset
+        return Comment.objects.filter(review_id=review).order_by('id')
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -186,9 +183,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        serializer.save(author=self.request.user, title_id=title)
+        serializer.save(author=self.request.user, title=title)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        new_queryset = Review.objects.filter(title_id=title_id).order_by('id')
-        return new_queryset
+        return Review.objects.filter(title=title_id).order_by('id')
