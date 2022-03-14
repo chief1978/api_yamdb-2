@@ -6,10 +6,13 @@ class User(AbstractUser):
     """Модель кастомизированного пользователя.
     Необязательное поле password, необходимое только для суперюзера.
     """
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
     USER_ROLE = (
-        ('admin', 'admin'),
-        ('moderator', 'moderator'),
-        ('user', 'user'),
+        (ADMIN, 'admin'),
+        (MODERATOR, 'moderator'),
+        (USER, 'user'),
     )
     password = models.CharField(
         'Пароль',
@@ -22,6 +25,7 @@ class User(AbstractUser):
         blank=True,
     )
     role = models.CharField(
+        'Роль',
         max_length=20,
         choices=USER_ROLE,
         default='user'
@@ -29,6 +33,10 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ('-date_joined',)
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
 
     def save(self, *args, **kwargs):
         if self.role == 'admin':

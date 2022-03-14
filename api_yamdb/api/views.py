@@ -1,11 +1,11 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
@@ -27,48 +27,32 @@ User = get_user_model()
 @permission_classes((permissions.AllowAny,))
 def send_confirmation_code(request):
     serializer = SignupUserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        code = default_token_generator.make_token(serializer.instance)
-        send_mail(
-            subject='confirmation_code',
-            message=(
-                f'{serializer.instance.username} your '
-                f'confirmation_code: {code}'
-            ),
-            from_email='server@mail.fake',
-            recipient_list=[serializer.instance.email]
-        )
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
-        )
-
-    return Response(
-        serializer.errors,
-        status=status.HTTP_400_BAD_REQUEST
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    code = default_token_generator.make_token(serializer.instance)
+    send_mail(
+        subject='confirmation_code',
+        message=(
+            f'{serializer.instance.username} your '
+            f'confirmation_code: {code}'
+        ),
+        from_email=settings.ADMIN_EMAIL,
+        recipient_list=[serializer.instance.email]
     )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
 def get_token(request):
     serializer = TokenSerializer(data=request.data)
-    if serializer.is_valid():
-        data = serializer.save()
-        user = get_object_or_404(User, username=data['username'])
-        user.password = ''
-        user.save()
-        token = str(AccessToken.for_user(user))
-        return Response(
-            {'token': token},
-            status=status.HTTP_200_OK
-        )
-
-    return Response(
-        serializer.errors,
-        status=status.HTTP_400_BAD_REQUEST
-    )
+    serializer.is_valid(raise_exception=True)
+    data = serializer.save()
+    user = get_object_or_404(User, username=data['username'])
+    user.password = ''
+    user.save()
+    token = str(AccessToken.for_user(user))
+    return Response({'token': token}, status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(BaseViewSet):
@@ -135,29 +119,20 @@ class UsersViewSet(ModelViewSet):
     lookup_url_kwargs = 'username'
     lookup_value_regex = r'[\w.@+-]+'
 
-    def get_object(self):
-        if self.kwargs.get('username', None) == 'me':
-            self.kwargs['username'] = self.request.user.username
-        return super(UsersViewSet, self).get_object()
-
-
-class MyselfViewSet(APIView):
-
-    def get_object(self, username):
-        return get_object_or_404(User, username=username)
-
-    def get(self, request):
-        user = self.get_object(request.user.username)
-        serializer = MyselfSerializer(user)
-        return Response(serializer.data)
-
-    def patch(self, request):
-        user = self.get_object(request.user.username)
+    @action(
+        detail=False,
+        permission_classes=(permissions.IsAuthenticated,),
+        methods=('get', 'patch',),
+    )
+    def me(self, request):
+        user = request.user
+        if request.method == 'GET':
+            serializer = MyselfSerializer(user)
+            return Response(serializer.data)
         serializer = MyselfSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
