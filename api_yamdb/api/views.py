@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
+from reviews.models import Category, Comment, Genre, Review, Title
 from .custom_filters import CategoryFilter
 from .mixins import BaseViewSet
 from .permissions import AuthorOrAdminOrModerator, IsAdminOrReadOnly
@@ -78,6 +78,7 @@ class GenreViewSet(BaseViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all().order_by('id')
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = CategoryFilter
@@ -87,28 +88,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ('retrieve', 'list'):
             return TitleGETSerializer
         return TitleSerializer
-
-    def get_queryset(self):
-        queryset = Title.objects.all().order_by('id')
-        genre = self.request.query_params.get('genre')
-        if genre is not None:
-            genre = get_object_or_404(Genre, slug=genre)
-            title_list = GenreTitle.objects.values_list(
-                'title_id', flat=True).filter(genre_id=genre)
-            queryset = Title.objects.filter(id__in=title_list).order_by('id')
-        return queryset
-
-    def perform_update(self, serializer):
-        category_slug = self.request.data['category']
-        category = get_object_or_404(Category, slug=category_slug)
-        title = serializer.save(category=category)
-        title.genre.clear()
-        genres_data = self.request.data.get('genre')
-        if genres_data is None:
-            genres_data = serializer.instance.genre
-        for genre_data in genres_data.all():
-            genre = get_object_or_404(Genre, slug=genre_data)
-            GenreTitle.objects.create(title_id=title, genre_id=genre)
 
 
 class UsersViewSet(ModelViewSet):
@@ -147,8 +126,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review_id=review)
 
     def get_queryset(self):
-        review = self.kwargs.get('review_id')
-        return Comment.objects.filter(review_id=review).order_by('id')
+        review_id = self.kwargs.get('review_id')
+        if Review.objects.filter(id=review_id).exists():
+            return Comment.objects.filter(review_id=review_id).order_by('id')
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -162,4 +143,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        return Review.objects.filter(title=title_id).order_by('id')
+        if Title.objects.filter(id=title_id).exists():
+            return Review.objects.filter(title=title_id).order_by('id')
+        return Response(status=status.HTTP_400_BAD_REQUEST)
