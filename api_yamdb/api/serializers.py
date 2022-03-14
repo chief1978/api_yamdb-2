@@ -56,14 +56,14 @@ class TokenSerializer(serializers.Serializer):
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('name', 'slug')
+        exclude = ['id']
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('name', 'slug')
+        exclude = ['id']
         model = Genre
 
 
@@ -84,15 +84,6 @@ class TitleGETSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
 
-    def create(self, validated_data):
-        genre_data = validated_data.pop('genre')
-        instance = Title(**validated_data)
-        title = instance.save()
-        for genre in genre_data:
-            Title.objects.create(title=title, **genre)
-
-        return title
-
 
 class TitleSerializer(serializers.ModelSerializer):
 
@@ -110,17 +101,6 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
-
-    def create(self, validated_data):
-        if 'genre' not in self.initial_data:
-            titles = Title.objects.create(**validated_data)
-            return titles
-        genres = validated_data.pop('genre')
-        titles = Title.objects.create(**validated_data)
-        for genre in genres:
-            current_genre = get_object_or_404(Genre, slug=genre)
-            GenreTitle.objects.create(genre_id=current_genre, title_id=titles)
-        return titles
 
 
 class UsersSerializer(serializers.ModelSerializer):
