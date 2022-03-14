@@ -1,3 +1,4 @@
+import codecs
 import os
 
 from .conftest import MANAGE_PATH, project_dir_content, root_dir_content
@@ -21,7 +22,7 @@ assert filename in root_dir_content, (
     f'В корне проекта не найден файл `{filename}`'
 )
 
-with open(filename, 'r') as f:
+with codecs.open(filename, 'r', 'utf_8_sig') as f:
     file = f.read()
     assert file != default_md, (
         f'Не забудьте оформить `{filename}`'
