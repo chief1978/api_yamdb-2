@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
+from .tokens import default_token_generator
 
 User = get_user_model()
 
@@ -54,26 +54,35 @@ class TokenSerializer(serializers.Serializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = ('name', 'slug')
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = ('name', 'slug')
         model = Genre
 
 
 class GenreTitleSerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = '__all__'
         model = GenreTitle
 
 
 class TitleGETSerializer(serializers.ModelSerializer):
+
     category = CategorySerializer(read_only=True, required=False)
     genre = GenreSerializer(many=True, read_only=True, required=False)
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
+                  'category')
 
     def create(self, validated_data):
         genre_data = validated_data.pop('genre')
@@ -84,13 +93,9 @@ class TitleGETSerializer(serializers.ModelSerializer):
 
         return title
 
-    class Meta:
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
-                  'category')
-        model = Title
-
 
 class TitleSerializer(serializers.ModelSerializer):
+
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all(),
@@ -102,9 +107,9 @@ class TitleSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        model = Title
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
-        model = Title
 
     def create(self, validated_data):
         if 'genre' not in self.initial_data:
@@ -137,17 +142,6 @@ class UsersSerializer(serializers.ModelSerializer):
         return data
 
 
-class OneUserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email',
-            'first_name', 'last_name',
-            'bio', 'role',
-        )
-
-
 class MyselfSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -161,32 +155,47 @@ class MyselfSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
     )
+    title = serializers.PrimaryKeyRelatedField(read_only=True)
 
-    title_id = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    class Meta:
+        model = Review
+        fields = '__all__'
 
-    def validate(self, data):
-        if data['score'] not in range(1, 11):
+    def validate_score(self, value):
+        if value not in range(1, 11):
             raise serializers.ValidationError(
                 "Оценка должна быть в диапазоне [1, 10]"
             )
-        return data
+        return value
 
-    class Meta:
-        fields = '__all__'
-        model = Review
+    def validate(self, data):
+        if (
+            Review.objects.filter(
+                author=self.context.get('request').user,
+                title_id=self.context.get('view').kwargs.get('title_id')
+            ).exists()
+            and self.context.get('request').method == 'POST'
+        ):
+            raise serializers.ValidationError(
+                'Можно оставить только один отзыв на проиведение.'
+            )
+        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
     )
-    review_id = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    review_id = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
-        fields = '__all__'
         model = Comment
+        fields = '__all__'
+        extra_kwargs = {'text': {'required': True}}
