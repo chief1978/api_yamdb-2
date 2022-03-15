@@ -130,9 +130,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
-        if Review.objects.filter(id=review_id).exists():
-            return Comment.objects.filter(review_id=review_id).order_by('id')
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        get_object_or_404(Review, id=review_id)
+        return Comment.objects.filter(review_id=review_id).order_by('id')
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -146,6 +145,5 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        if Title.objects.filter(id=title_id).exists():
-            return Review.objects.filter(title=title_id).order_by('id')
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        get_object_or_404(Title, id=title_id)
+        return Review.objects.filter(title=title_id).order_by('id')

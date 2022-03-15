@@ -28,7 +28,7 @@ class User(AbstractUser):
         'Роль',
         max_length=20,
         choices=USER_ROLE,
-        default='user'
+        default=USER
     )
 
     class Meta:
@@ -39,6 +39,6 @@ class User(AbstractUser):
         return self.role == self.MODERATOR
 
     def save(self, *args, **kwargs):
-        if self.role == 'admin':
+        if self.role == self.ADMIN:
             self.is_staff = True
         super().save(*args, **kwargs)
