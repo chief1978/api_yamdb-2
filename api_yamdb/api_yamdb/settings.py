@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'reviews.apps.ReviewsConfig',
     'api.apps.ApiConfig',
-    'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -135,8 +134,8 @@ SIMPLE_JWT = {
 
 #  Email
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+ADMIN_EMAIL = 'server@mail.fake'
 
 # сonfirmation_code
 PASSWORD_RESET_TIMEOUT_DAYS = 10000
